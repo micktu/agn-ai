@@ -20,9 +20,26 @@ const CHAT_MODELS: Record<string, boolean> = {
   [OPENAI_MODELS.GPT4]: true,
 }
 
+// obsoleted immediately, I suppose - @micktu
+export function gaslightMethodToRole(method: string): 'user' | 'assistant' | 'system' {
+  switch (method) {
+    case 'userFew':
+      return 'user'
+    case 'userZero':
+      return 'user'
+    case 'assistant':
+      return 'assistant'
+  }
+
+  return 'user'
+}
+
 export const handleOAI: ModelAdapter = async function* (opts) {
-  const { char, members, user, prompt, settings, sender, log, guest, lines, parts, gen, kind } =
+  const { char, members, user, prompt, settings, sender, log, guest, parts, gen, kind } =
     opts
+  
+  let lines = opts.lines
+  
   if (!user.oaiKey) {
     yield { error: `OpenAI request failed: Not OpenAI API key not set. Check your settings.` }
     return
@@ -44,7 +61,18 @@ export const handleOAI: ModelAdapter = async function* (opts) {
     const encoder = getEncoder('openai', OPENAI_MODELS.Turbo)
     const user = sender.handle || 'You'
 
-    const messages: OpenAIMessagePropType[] = [{ role: 'system', content: parts.gaslight }]
+    const messages: OpenAIMessagePropType[] = []
+
+    if (gen.gaslightMethod !== 'system') {
+      messages.push({ role: gaslightMethodToRole(gen.gaslightMethod!), content: parts.gaslight })
+    }
+
+
+    if (gen.gaslightMethod === 'userZero') {
+      messages[messages.length - 1].content += `\n\n${lines[0]}`
+      lines = lines.slice(1)
+    }
+
     const history: OpenAIMessagePropType[] = []
 
     const all = []
@@ -52,15 +80,26 @@ export const handleOAI: ModelAdapter = async function* (opts) {
     let maxBudget =
       (gen.maxContextLength || defaultPresets.openai.maxContextLength) - body.max_tokens
 
-    let tokens = encoder(parts.gaslight)
+    let tokens = 0
+    if (gen.gaslightMethod !== 'system') tokens = encoder(parts.gaslight) 
 
     if (lines) {
       all.push(...lines)
     }
 
+    let jailbreak = ''
+
     if (gen.ultimeJailbreak) {
-      history.push({ role: 'system', content: gen.ultimeJailbreak })
-      tokens += encoder(gen.ultimeJailbreak)
+      jailbreak = `${parts.ultimeJailbreak}`
+    }
+
+    if (gen.useGaslight && gen.gaslightMethod === 'system') {
+      jailbreak += `\n\n${parts.gaslight}`
+    }
+
+    if (jailbreak) {
+      history.push({ role: 'system', content: jailbreak })
+      tokens += encoder(jailbreak)
     }
 
     if (kind === 'continue') {
@@ -83,7 +122,7 @@ export const handleOAI: ModelAdapter = async function* (opts) {
       if (isBot) {
         role = 'assistant'
       } else if (line === '<START>') {
-        role = 'system'
+        role = gaslightMethodToRole(gaslightMethodToRole(gen.gaslightMethod!)) // Do we even need this? - @micktu
       } else {
         role = 'user'
       }

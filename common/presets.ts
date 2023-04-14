@@ -6,7 +6,12 @@ export { defaultPresets }
 
 export type GenerationPreset = keyof typeof defaultPresets
 
+
 export type GenMap = { [key in keyof Omit<AppSchema.GenSettings, 'name'>]: string }
+
+export type GaslightMethod = (typeof GASLIGHT_METHODS)[number]
+
+export const GASLIGHT_METHODS = ['system', 'userFew', 'userZero', 'assistant'] as const
 
 export const chatGenSettings = {
   temp: 'number',
@@ -29,6 +34,7 @@ export const chatGenSettings = {
   oaiModel: 'string',
   claudeModel: 'string',
   useGaslight: 'boolean?',
+  gaslightMethod: GASLIGHT_METHODS,
   ultimeJailbreak: 'string?',
   antiBond: 'boolean?',
 } as const

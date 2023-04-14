@@ -1,6 +1,7 @@
 import { Component, createSignal, Show } from 'solid-js'
 import RangeInput from './RangeInput'
 import TextInput from './TextInput'
+import RadioGroup from './RadioGroup'
 import Select, { Option } from './Select'
 import { AppSchema } from '../../srv/db/schema'
 import { defaultPresets } from '../../common/presets'
@@ -14,6 +15,13 @@ type Props = {
   disabled?: boolean
   showAll?: boolean
 }
+
+const gaslightOptions = [
+  { id: 'system', label: 'System' },
+  { id: 'userFew', label: 'User (few-shot)' },
+  { id: 'userZero', label: 'User (zero-shot)' },
+  { id: 'assistant', label: 'Assistant' },
+]
 
 const GenerationSettings: Component<Props> = (props) => {
   const tabs = ['General', 'Prompt'] as const
@@ -152,6 +160,15 @@ const PromptSettings: Component<Props> = (props) => {
         }
         value={props.inherit?.useGaslight ?? false}
         disabled={props.disabled}
+      />
+
+      <RadioGroup
+        name="gaslightMethod"
+        label="Gaslight Method (GPT-4 / Turbo)"
+        helperText="TODO"
+        horizontal
+        options={gaslightOptions}
+        value={props.inherit?.gaslightMethod || 'system'}
       />
 
       <TextInput

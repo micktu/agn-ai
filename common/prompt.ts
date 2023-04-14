@@ -162,6 +162,7 @@ export type PromptParts = {
   sampleChat?: string[]
   persona: string
   gaslight: string
+  ultimeJailbreak: string
   post: string[]
   gaslightHasChat: boolean
   memory?: MemoryPrompt
@@ -180,6 +181,7 @@ export function getPromptParts(
     persona: formatCharacter(char.name, chat.overrides).replace(/\n+/g, ' '),
     post: [],
     gaslight: '',
+    ultimeJailbreak: '',
     gaslightHasChat: false,
   }
 
@@ -204,8 +206,20 @@ export function getPromptParts(
 
   const gaslight = opts.settings?.gaslight || defaultPresets.openai.gaslight
 
+  const ultimeJailbreak = opts.settings?.ultimeJailbreak || ''
+
   const sampleChat = parts.sampleChat?.join('\n') || ''
   parts.gaslight = gaslight
+    .replace(/\{\{example_dialogue\}\}/g, sampleChat)
+    .replace(/\{\{scenario\}\}/g, parts.scenario || '')
+    .replace(/\{\{memory\}\}/g, parts.memory?.prompt || '')
+    .replace(/\{\{name\}\}/g, char.name)
+    .replace(/\<BOT\>/g, char.name)
+    .replace(/\{\{personality\}\}/g, formatCharacter(char.name, chat.overrides || char.persona))
+    .replace(/\{\{char\}\}/g, char.name)
+    .replace(/\{\{user\}\}/g, sender)
+
+  parts.ultimeJailbreak = ultimeJailbreak
     .replace(/\{\{example_dialogue\}\}/g, sampleChat)
     .replace(/\{\{scenario\}\}/g, parts.scenario || '')
     .replace(/\{\{memory\}\}/g, parts.memory?.prompt || '')

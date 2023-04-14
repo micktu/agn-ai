@@ -1,5 +1,5 @@
 import { AIAdapter, ChatAdapter, PersonaFormat } from '../../common/adapters'
-import { GenerationPreset } from '../../common/presets'
+import { GenerationPreset, GaslightMethod } from '../../common/presets'
 
 export namespace AppSchema {
   export interface Token {
@@ -185,6 +185,7 @@ export namespace AppSchema {
 
     gaslight?: string
     useGaslight?: boolean
+    gaslightMethod?: GaslightMethod
     ultimeJailbreak?: string
     antiBond?: boolean
 

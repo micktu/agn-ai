@@ -10,6 +10,8 @@ export interface RadioOption {
 
 const RadioGroup: Component<{
   name: string
+  label?: string | JSX.Element
+  helperText?: string | JSX.Element
   options: RadioOption[]
   horizontal?: boolean
   value?: string
